@@ -65,14 +65,14 @@ interface ProjectTableProps{
 
 interface EditProjectData {
     title:string;
-    description:string;
+    description:string | null;
 }
 
 export default function ProjectTable({projects, onDeleteProject, onDuplicateProject, onUpdateProject}:ProjectTableProps){
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [editDialogOpen, setEditDialogOpen] = useState(false)
     const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-    const [editData, setEditData] = useState<EditProjectData>({ title: "", description: "" })
+    const [editData, setEditData] = useState<EditProjectData>({ title: "", description: null })
     const [isLoading, setIsLoading] = useState(false)
     const [favorite, setFavorite] = useState(false)
     const handleDuplicateProject = async (project: Project) => {
@@ -149,7 +149,7 @@ export default function ProjectTable({projects, onDeleteProject, onDuplicateProj
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" suppressHydrationWarning>
                                             <MoreHorizontal className="h-4 w-8" />
                                             <span className="sr-only">Open Menu</span>
                                         </Button>

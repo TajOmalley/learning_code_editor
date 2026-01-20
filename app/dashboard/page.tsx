@@ -10,8 +10,8 @@ const Page = async() => {
     return (
         <div className='flex flex-col justify-start items-center min-h-screen mx-auto max-w-7x1 px-4 py-10'>
             <div className='grid grid-cols md:grid-cols-2 gap-6 w-full'>
-                <AddNewButton/>
-                <AddRepoButton/>
+                <AddNewButton />
+                <AddRepoButton />
             </div>
         
             <div className='mt-10 flex flex-col justify-center items-center w-full'>
