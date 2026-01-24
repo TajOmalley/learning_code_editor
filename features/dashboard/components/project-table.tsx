@@ -75,29 +75,80 @@ export default function ProjectTable({projects, onDeleteProject, onDuplicateProj
     const [editData, setEditData] = useState<EditProjectData>({ title: "", description: null })
     const [isLoading, setIsLoading] = useState(false)
     const [favorite, setFavorite] = useState(false)
+
+
     const handleDuplicateProject = async (project: Project) => {
         if(!onDuplicateProject) return;
 
         setIsLoading(true);
         try {
+            await onDuplicateProject(project.id);
+            toast.success("Project Duplicated Successfully")
         } catch (error){
+            toast.error("Failed to Duplicate Project")
+            console.error(error)
         } finally {
+            setIsLoading(false)
         }
 
     };
 
     const handleEditClick = async (project: Project) => {
-
+        setSelectedProject(project);
+        setEditData({
+            title:project.title,
+            description:project.description || ""
+        })
+        setEditDialogOpen(true)
     };
 
-    const copyProjectUrl = async (projectId: string) => {
+    const handleUpdateProject = async ()=> {
+        if(!selectedProject || !onUpdateProject) return;
 
+        setIsLoading(true);
+        try {
+            await onUpdateProject(selectedProject.id, editData)
+            setEditDialogOpen(false);
+            setSelectedProject(null);
+            toast.success("Project Updated Successfully")
+        } catch (error) {
+            toast.error("Failed to Update Project")
+            console.error("Error Updating Project:", error)
+        }
+        finally{
+            setIsLoading(false)
+        }
+    }
+
+    const copyProjectUrl = async (projectId: string) => {
+        const url = `${window.location.origin}/playground/${projectId}`
+        navigator.clipboard.writeText(url);
+        toast.success("Project URL Copied to Clipboard")
     };
 
     const handleDeleteClick = async(project: Project) => {
-
+        setSelectedProject(project);
+        setDeleteDialogOpen(true)
     };
 
+    const handleDeleteProject = async()=>{
+        if (!selectedProject || !onDeleteProject) return;
+        setIsLoading(true);
+
+        try {
+            await onDeleteProject(selectedProject.id);
+            setDeleteDialogOpen(false);
+            setSelectedProject(null);
+            toast.success("Project Deleted Sucessfully");
+        } catch (error) {
+            toast.error("Failed to Delete Project")
+            console.error(error)
+        }
+        finally{
+            setIsLoading(false);
+        }
+    };
+    
 
     return (
         <>
@@ -122,6 +173,7 @@ export default function ProjectTable({projects, onDeleteProject, onDuplicateProj
                                 <Link href={`/playground/${project.id}`} className="hover:underline">
                                     <span className="font-semibold">{project.title}</span>
                                 </Link>
+                                <span className="text-sm text-gray-500 line-clamp-1">{project.description}</span>
                             </div>
                             </TableCell>
                             <TableCell>
@@ -171,6 +223,14 @@ export default function ProjectTable({projects, onDeleteProject, onDuplicateProj
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleEditClick(project)}>
+                                            <Edit3 className="h-4 w-4 mr-2"/>
+                                            Edit Project
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
+                                            <Copy className="h-4 w-4 mr-2" />
+                                            Duplicate
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => copyProjectUrl(project.id)}>
                                             <Download className="h-4 w-4 mr-2"/>
                                             Copy URL
@@ -189,6 +249,58 @@ export default function ProjectTable({projects, onDeleteProject, onDuplicateProj
             </TableBody>
         </Table>
         </div>
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Project</DialogTitle>
+                    <DialogDescription>Make Changes to Your Project Details Here. Click Save When Finished.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="title">Project Title</Label>
+                        <Input
+                            id="title"
+                            value={editData.title}
+                            onChange={(e) => setEditData((prev) => ({...prev, title: e.target.value}))}
+                            placeholder="Enter Project Title"
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            value={editData.description}
+                            onChange={(e) => setEditData((prev) => ({...prev, descriptionescription: e.target.value}))}
+                            placeholder="Enter Project Description"
+                            rows={3}
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant={"outline"} onClick={()=>setEditDialogOpen(false)} disabled={isLoading}>Cancel</Button>
+                    <Button type="button" variant={"brand"} onClick={handleUpdateProject}>
+                        {
+                            isLoading ? "Saving..." : "Save Changes"
+                        }
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+
+        </Dialog>
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete <span className="font-semibold text-gray-400"> "{selectedProject?.title}" </span>? This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteProject} disabled={isLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{isLoading ? "Deleting..." : "Delete Project"}</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         </>
     );
 }
