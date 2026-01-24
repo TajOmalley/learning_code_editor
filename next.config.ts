@@ -1,17 +1,39 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  images:{
-    remotePatterns:[
+  images: {
+    remotePatterns: [
       {
-        protocol:"https",
-        hostname:"*",
-        port:"",
-        pathname:"/**"
-      }
-    ]
-  }
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/playground/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
